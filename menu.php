@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -84,7 +85,7 @@ if (!empty($where_conditions)) {
 }
 
 // Adiciona a condição para mostrar apenas tickets sem responsável
-$ticketQuery .= " AND (assignee IS NULL OR assignee = '')";
+$ticketQuery .= " AND (assignee IS NULL OR assignee = 'nenhum')";
 
 // Adiciona a ordenação
 $ticketQuery .= " ORDER BY FIELD(urgency, 'urgente', 'alta', 'média', 'baixa'), created_at ASC";
@@ -259,81 +260,33 @@ if (!empty($params)) {
                 closeModal();
             }
         });
-          // Função para atualizar o conteúdo da tabela
-          function updateTable() {
-              fetch('/get_unassigned_tickets.php')  // Add leading slash
-                  .then(response => response.text())
-                  .then(data => {
-                      document.querySelector('.ticket-table tbody').innerHTML = data;
-                  });
-          }
-          // Atualiza a tabela a cada 5 segundos
-          setInterval(updateTable, 5000);
+        // Função para atualizar o conteúdo da tabela
+        function updateTable() {
+            fetch('get_unassigned_tickets.php')  // Removido a barra inicial
+                .then(response => response.text())
+                .then(data => {
+                    document.querySelector('.ticket-table tbody').innerHTML = data;
+                });
+        }
+        // Atualiza a tabela a cada 5 segundos
+        setInterval(updateTable, 5000);
 
-          // Atualiza imediatamente após assumir um ticket
-          function copiar(ticketId) {
-              const xhr = new XMLHttpRequest();
-              xhr.open('POST', 'assumir_ticket.php', true);
-              xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-              xhr.onreadystatechange = function() {
-                  if (xhr.readyState === 4 && xhr.status === 200) {
-                      updateTable(); // Atualiza tabela imediatamente
-                      alert('Ticket assumido com sucesso!');
-                  }
-              };
-              xhr.send('id=' + ticketId + '&status=2');
-          }
+        // Atualiza imediatamente após assumir um ticket
+        function copiar(ticketId) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'assumir_ticket.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    updateTable(); // Atualiza tabela imediatamente
+                    alert('Ticket assumido com sucesso!');
+                }
+            };
+            xhr.send('id=' + ticketId + '&status=2');
+        }
+
         function editar(ticketId) {
             window.location.href = 'edit_ticket.php?id=' + ticketId;
         }
     </script>
 </body>
-
-</html>
-<div class="filter-bar">
-    <form method="GET" action="" class="filter-form">
-        <select name="categoria" id="categoria">
-            <option value="">Categoria</option>
-            <option value="sistema">Sistema</option>
-            <option value="infra">Infraestrutura</option>
-        </select>
-
-        <select name="responsavel" id="responsavel">
-            <option value="">Responsável</option>
-            <?php
-            $queryUsers = "SELECT DISTINCT assignee FROM tickets WHERE assignee IS NOT NULL";
-            $resultUsers = $conn->query($queryUsers);
-            while ($user = $resultUsers->fetch_assoc()) {
-                echo "<option value='" . $user['assignee'] . "'>" . $user['assignee'] . "</option>";
-            }
-            ?>
-        </select>
-
-        <select name="status" id="status">
-            <option value="">Status</option>
-            <option value="1">Aberto</option>
-            <option value="2">Atendimento</option>
-            <option value="3">Fechado</option>
-            <option value="4">Encerrado</option>
-            <option value="5">Espera</option>
-        </select>
-
-        <select name="urgencia" id="urgencia">
-            <option value="">Urgência</option>
-            <option value="urgente">Urgente</option>
-            <option value="alta">Alta</option>
-            <option value="media">Média</option>
-            <option value="baixa">Baixa</option>
-        </select>
-
-        <input type="date" name="data" id="data">
-
-        <button type="submit" class="filter-button">
-            <i class="fas fa-filter"></i> Filtrar
-        </button>
-
-        <button type="reset" class="clear-button" onclick="window.location.href='menu.php'">
-            <i class="fas fa-times"></i> Limpar Filtros
-        </button>
-    </form>
-</div>
