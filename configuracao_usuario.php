@@ -150,7 +150,7 @@ $userResult = $conn->query($userQuery);
                 </a>
             </li>
             <li>
-                <a href="#">
+                <a href="historico_chamados.php">
                     <i class="fas fa-history"></i>
                     <span class="menu-text">Histórico de Chamados</span>
                 </a>

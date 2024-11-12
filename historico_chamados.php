@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
 <?php
 include 'db.php';
 session_start();
@@ -33,25 +36,21 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 $userName = $user['name'];
 
-// Consulta todos os chamados
+// Consulta todos os chamados fechados e encerrados
 $ticketQuery = "
-  SELECT id, subject, assignee, status, created_at, category, sector, urgency
+    SELECT id, subject, assignee, status, created_at, category, sector, urgency
     FROM tickets
-    WHERE status NOT IN (3, 4)
+    WHERE status IN (3, 4)
     ORDER BY created_at DESC
 ";
 
 $ticketResult = $conn->query($ticketQuery);
-$stmt->close();
 ?>
-
-<!DOCTYPE html>
-<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todos os Chamados - Help Desk</title>
+    <title>Histórico de Chamados - Help Desk</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
@@ -59,10 +58,10 @@ $stmt->close();
 
 <body>
     <div class="header">
-        <a href="create_ticket.php" class="open-ticket-btn">
-            <i class="fas fa-plus"></i> Novo Chamado
+        <a href="menu.php" class="open-ticket-btn">
+            <i class="fas fa-arrow-left"></i> Voltar
         </a>
-        <h1>TODOS OS CHAMADOS</h1>
+        <h1>HISTÓRICO DE CHAMADOS</h1>
         <div class="user-info">
             <button class="user-button">
                 <i class="fas fa-user"></i> <?php echo htmlspecialchars($userName); ?>
@@ -83,7 +82,6 @@ $stmt->close();
                     <i class="fas fa-user-plus"></i>
                     <span class="menu-text">Adicionar Usuário</span>
                 </a>
-
             </li>
             <li>
                 <a href="#">
@@ -139,7 +137,7 @@ $stmt->close();
                         <tr id="ticket-<?php echo $ticket['id']; ?>">
                             <td><?php echo htmlspecialchars($ticket['id']); ?></td>
                             <td><?php echo htmlspecialchars($ticket['subject']); ?></td>
-                            <td class="assignee-cell"><?php echo htmlspecialchars($ticket['assignee'] ? $ticket['assignee'] : 'nenhum'); ?></td>
+                            <td><?php echo htmlspecialchars($ticket['assignee']); ?></td>
                             <td data-status="<?php echo getStatusText($ticket['status']); ?>">
                                 <?php echo getStatusText($ticket['status']); ?>
                             </td>
@@ -148,24 +146,27 @@ $stmt->close();
                             <td><?php echo htmlspecialchars($ticket['sector']); ?></td>
                             <td><?php echo htmlspecialchars($ticket['urgency']); ?></td>
                             <td>
-                                <button onclick="editar(<?php echo $ticket['id']; ?>)">Editar</button>
-                                <?php if ($ticket['assignee'] == 'nenhum' || empty($ticket['assignee'])): ?>
-                                    <button onclick="copiar(<?php echo $ticket['id']; ?>)">Assumir</button>
-                                <?php endif; ?>
-                                <button onclick="remover(<?php echo $ticket['id']; ?>)">Remover</button>
+                                <button onclick="visualizar(<?php echo $ticket['id']; ?>)">Visualizar</button>
                             </td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
             </table>
         <?php else: ?>
-            <p><strong>Vazio:</strong> Não há chamados abertos no momento.</p>
+            <p><strong>Vazio:</strong> Não há chamados no histórico.</p>
         <?php endif; ?>
     </div>
 
     <script>
-        // Same JavaScript functions as menu.php
-    </script>
-</body>
+        function visualizar(ticketId) {
+            window.location.href = 'view_ticket.php?id=' + ticketId;
+        }
 
+        // Atualiza a tabela a cada 30 segundos
+        setInterval(function() {
+            location.reload();
+        }, 30000);
+    </script>
+
+</body>
 </html>

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -161,7 +160,7 @@ if (!empty($params)) {
                 </a>
             </li>
             <li>
-                <a href="#">
+                <a href="historico_chamados.php">
                     <i class="fas fa-history"></i>
                     <span class="menu-text">Histórico de Chamados</span>
                 </a>
@@ -209,7 +208,7 @@ if (!empty($params)) {
                                     <button onclick="copiar(<?php echo $ticket['id']; ?>)">Assumir</button>
                                 <?php endif; ?>
                                 <button onclick="remover(<?php echo $ticket['id']; ?>)">Remover</button>
-                                
+
                             </td>
                         </tr>
                     <?php endwhile; ?>
@@ -221,8 +220,6 @@ if (!empty($params)) {
     </div>
 
     <script>
-        
-
         let ticketIdToRemove = null;
 
         function remover(ticketId) {
@@ -260,7 +257,7 @@ if (!empty($params)) {
         });
         // Função para atualizar o conteúdo da tabela
         function updateTable() {
-            fetch('get_unassigned_tickets.php')  // Removido a barra inicial
+            fetch('get_unassigned_tickets.php') // Removido a barra inicial
                 .then(response => response.text())
                 .then(data => {
                     document.querySelector('.ticket-table tbody').innerHTML = data;
