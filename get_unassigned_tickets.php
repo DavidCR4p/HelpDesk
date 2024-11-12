@@ -1,5 +1,6 @@
 <?php
 include 'db.php';
+include 'conexao.php';
 session_start();
 
 function getStatusText($statusNumber) {

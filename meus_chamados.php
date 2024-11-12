@@ -64,7 +64,7 @@ $stmt->close();
 
 <body>
     <div class="header">
-        <a href="menu.php" class="open-ticket-btn">
+        <a href="meus_chamados.php" class="open-ticket-btn">
             <i class="fas fa-arrow-left"></i> Voltar
         </a>
         <h1>MEUS CHAMADOS</h1>
@@ -153,8 +153,6 @@ $stmt->close();
                             <td><?php echo htmlspecialchars($ticket['urgency']); ?></td>
                             <td>
                                 <button onclick="editar(<?php echo $ticket['id']; ?>)">Editar</button>
-                                <button onclick="visualizar(<?php echo $ticket['id']; ?>)">Visualizar</button>
-                                <button onclick="remover(<?php echo $ticket['id']; ?>)">Remover</button>
                             </td>
                         </tr>
                     <?php endwhile; ?>
@@ -166,17 +164,70 @@ $stmt->close();
     </div>
 
     <script>
-        function visualizar(ticketId) {
-            window.location.href = 'view_ticket.php?id=' + ticketId;
-        }
+       
 
-        function editar(ticketId) {
-            window.location.href = 'edit_ticket.php?id=' + ticketId;
-        }
+        let ticketIdToRemove = null;
+
         function remover(ticketId) {
             ticketIdToRemove = ticketId;
             const modal = document.getElementById('confirmModal');
             modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        document.getElementById('confirmBtn').addEventListener('click', function() {
+            if (ticketIdToRemove !== null) {
+                fetch('remover_ticket.php?id=' + ticketIdToRemove, {
+                        method: 'GET'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        closeModal();
+                        if (data.status === 'success') {
+                            alert('Ticket removido com sucesso!');
+                            location.reload();
+                        } else {
+                            alert('Erro ao remover o ticket: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao remover o ticket:', error);
+                        alert('Ocorreu um erro ao tentar remover o ticket.');
+                    });
+            } else {
+                closeModal();
+            }
+        });
+        // Função para atualizar o conteúdo da tabela
+        function updateTable() {
+            fetch('get_unassigned_tickets.php')  // Removido a barra inicial
+                .then(response => response.text())
+                .then(data => {
+                    document.querySelector('.ticket-table tbody').innerHTML = data;
+                });
+        }
+        // Atualiza a tabela a cada 5 segundos
+        setInterval(updateTable, 5000);
+
+        // Atualiza imediatamente após assumir um ticket
+        function copiar(ticketId) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'assumir_ticket.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    updateTable(); // Atualiza tabela imediatamente
+                    alert('Ticket assumido com sucesso!');
+                }
+            };
+            xhr.send('id=' + ticketId + '&status=2');
+        }
+
+        function editar(ticketId) {
+            window.location.href = 'edit_ticket.php?id=' + ticketId;
         }
     </script>
 </body>

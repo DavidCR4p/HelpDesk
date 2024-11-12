@@ -209,7 +209,7 @@ if (!empty($params)) {
                                     <button onclick="copiar(<?php echo $ticket['id']; ?>)">Assumir</button>
                                 <?php endif; ?>
                                 <button onclick="remover(<?php echo $ticket['id']; ?>)">Remover</button>
-                                <button onclick="visualizar(<?php echo $ticket['id']; ?>)">Visualizar</button>
+                                
                             </td>
                         </tr>
                     <?php endwhile; ?>
@@ -221,9 +221,7 @@ if (!empty($params)) {
     </div>
 
     <script>
-        function visualizar(ticketId) {
-            window.location.href = 'view_ticket.php?id=' + ticketId;
-        }
+        
 
         let ticketIdToRemove = null;
 

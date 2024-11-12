@@ -37,10 +37,7 @@ $userName = $user['name'];
 $ticketQuery = "
     SELECT id, subject, assignee, status, created_at, category, sector, urgency
     FROM tickets
-    WHERE status NOT IN ('3', '4')
-    ORDER BY
-        FIELD(urgency, 'urgente', 'alta', 'média', 'baixa'),
-        created_at asc
+    ORDER BY created_at DESC
 ";
 
 $ticketResult = $conn->query($ticketQuery);
@@ -153,7 +150,6 @@ $stmt->close();
                                     <button onclick="copiar(<?php echo $ticket['id']; ?>)">Assumir</button>
                                 <?php endif; ?>
                                 <button onclick="remover(<?php echo $ticket['id']; ?>)">Remover</button>
-                                <button onclick="visualizar(<?php echo $ticket['id']; ?>)">Visualizar</button>
                             </td>
                         </tr>
                     <?php endwhile; ?>
