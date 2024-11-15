@@ -29,14 +29,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $sector = $_POST['sector'] ?? '';
     $urgency = $_POST['urgency'] ?? '';
     $description = $_POST['description'] ?? '';
+    $email = $_SESSION['email']; // Get email from session
 
     if (!empty($subject) && !empty($category) && !empty($sector) && !empty($urgency) && !empty($description)) {
         $validUrgencies = ['baixa', 'media', 'alta', 'urgente'];
         if (in_array($urgency, $validUrgencies)) {
-            // This line sets the status as '1' (aberto) automatically
-            $stmt = $pdo->prepare("INSERT INTO tickets (subject, category, sector, urgency, description, status) VALUES (?, ?, ?, ?, ?, '1')");
-            $stmt->execute([$subject, $category, $sector, $urgency, $description]);
-
+            $stmt = $pdo->prepare("INSERT INTO tickets (subject, category, sector, urgency, description, status, created_by) VALUES (?, ?, ?, ?, ?, '1', ?)");
+            $stmt = $pdo->prepare("
+              INSERT INTO tickets 
+                (subject, category, sector, urgency, description, status, created_by, created_at) 
+                VALUES 
+                (?, ?, ?, ?, ?, '1', ?, NOW())
+            ");
+            // Execute com todos os parâmetros, incluindo o email
+            $stmt->execute([
+                $subject,
+                $category,
+                $sector,
+                $urgency,
+                $description,
+                $email // Email do usuário logado
+            ]);
             header("Location: menu.php");
             exit();
         }

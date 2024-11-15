@@ -152,8 +152,7 @@ $ticketResult = $conn->query($ticketQuery);
                     <?php endwhile; ?>
                 </tbody>
             </table>
-        <?php else: ?>
-            <p><strong>Vazio:</strong> Não há chamados no histórico.</p>
+        <?php else: ?>            <p><strong>Vazio:</strong> Não há chamados no histórico.</p>
         <?php endif; ?>
     </div>
 

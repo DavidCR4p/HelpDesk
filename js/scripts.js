@@ -143,3 +143,7 @@ function toggleFilters() {
   const filterContainer = document.getElementById('filterContainer');
   filterContainer.style.display = filterContainer.style.display === 'none' ? 'block' : 'none';
 }
+
+function visualizar(ticketId) {
+  window.location.href = 'view_ticket.php?id=' + ticketId;
+}

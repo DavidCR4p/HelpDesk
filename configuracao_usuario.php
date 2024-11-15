@@ -75,7 +75,7 @@ $userResult = $conn->query($userQuery);
                 <input type="email" name="email" placeholder="E-mail" required>
                 <input type="password" name="password" placeholder="Senha" required>
                 <select name="tipo_usuario">
-                    <option value="user">Usuário</option>
+                    <option value="solicitante">Solicitante</option>
                     <option value="atendente">Atendente</option>
                 </select>
                 <div>
@@ -100,7 +100,7 @@ $userResult = $conn->query($userQuery);
                 <input type="email" name="email" id="editUserEmail" placeholder="E-mail" required>
                 <input type="password" name="password" id="editUserPassword" placeholder="Nova Senha (deixe em branco para manter a atual)">
                 <select name="tipo_usuario" id="editUserTipoUsuario">
-                    <option value="user">Usuário</option>
+                    <option value="solicitante">Solicitante</option>
                     <option value="atendente">Atendente</option>
                 </select>
                 <div>
