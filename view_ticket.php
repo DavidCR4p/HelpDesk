@@ -131,9 +131,10 @@ $ticket = $ticketResult->fetch_assoc();
             </div>
 
             <div class="form-row">
+
                 <div class="form-group">
                     <label>Status:</label>
-                    <input type="text" value="<?php echo $ticket['status'] == 3 ? 'Fechado' : 'Encerrado'; ?>" readonly>
+                    <input type="text" value="<?php echo ($ticket['status']); ?>" readonly>
                 </div>
 
                 <div class="form-group">
@@ -148,10 +149,10 @@ $ticket = $ticketResult->fetch_assoc();
             </div>
 
             <?php if (!empty($ticket['solution'])): ?>
-            <div class="form-group">
-                <label>Solução:</label>
-                <textarea readonly><?php echo htmlspecialchars($ticket['solution']); ?></textarea>
-            </div>
+                <div class="form-group">
+                    <label>Solução:</label>
+                    <textarea readonly><?php echo htmlspecialchars($ticket['solution']); ?></textarea>
+                </div>
             <?php endif; ?>
         </div>
     </div>
@@ -163,7 +164,7 @@ $ticket = $ticketResult->fetch_assoc();
             padding: 20px;
             background: #fff;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .form-group {
@@ -182,7 +183,8 @@ $ticket = $ticketResult->fetch_assoc();
             font-weight: bold;
         }
 
-        input[type="text"], textarea {
+        input[type="text"],
+        textarea {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
@@ -195,10 +197,12 @@ $ticket = $ticketResult->fetch_assoc();
             resize: vertical;
         }
 
-        input[readonly], textarea[readonly] {
+        input[readonly],
+        textarea[readonly] {
             background-color: #f5f5f5;
             cursor: default;
         }
     </style>
 </body>
+
 </html>

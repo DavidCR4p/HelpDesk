@@ -9,7 +9,6 @@ if (!isset($_SESSION['email'])) {
 }
 
 include('conexao.php');
-
 // Função para converter número em texto do status
 function getStatusText($statusNumber)
 {
@@ -20,8 +19,9 @@ function getStatusText($statusNumber)
         '4' => 'Encerrado',
         '5' => 'Espera'
     ];
-    return $statusMap[$statusNumber] ?? 'desconhecido';
+    return $statusMap[$statusNumber] ?? 'Desconhecido';
 }
+
 
 // Busca informações do usuário
 $email = $_SESSION['email'];
@@ -33,33 +33,56 @@ $userName = $userData['name'];
 $userType = $userData['tipo_usuario'];
 
 // Primeiro defina as condições básicas
-$where_conditions = ["created_by = ?"]; 
+$where_conditions = ["created_by = ?"];
 $params = [$_SESSION['email']];
 $types = "s";
 
-// Monta a query
-$ticketQuery = "
-    SELECT 
-        t.id, 
-        t.subject, 
-        t.assignee, 
-        t.status, 
-        t.created_at, 
-        t.category, 
-        t.sector, 
-        t.urgency
-    FROM tickets t
-    WHERE t.created_by = ?
-    ORDER BY 
-        FIELD(t.urgency, 'urgente', 'alta', 'média', 'baixa'), 
-        t.created_at ASC
-";
-
-// Prepara e executa a query
-$stmt = $conn->prepare($ticketQuery);
-$stmt->bind_param($types, ...$params);
-$stmt->execute();
+// Modifique a parte da query após a verificação do tipo de usuário
+if ($userType == 'atendente') {
+    $ticketQuery = "
+        SELECT 
+            t.id, 
+            t.subject, 
+            t.assignee, 
+            t.status, 
+            t.created_at, 
+            t.category, 
+            t.sector, 
+            t.urgency
+        FROM tickets t
+        WHERE (t.assignee = 'nenhum' OR t.assignee IS NULL)
+        AND t.status = 1
+        ORDER BY 
+            FIELD(t.urgency, 'urgente', 'alta', 'média', 'baixa'), 
+            t.created_at ASC
+    ";
+    $stmt = $conn->prepare($ticketQuery);
+    $stmt->execute();
+} else {
+    $ticketQuery = "
+        SELECT 
+            t.id, 
+            t.subject, 
+            t.assignee, 
+            t.status, 
+            t.created_at, 
+            t.category, 
+            t.sector, 
+            t.urgency
+        FROM tickets t
+        WHERE t.created_by = ?
+        AND t.status IN (1, 2, 5)
+        ORDER BY 
+            FIELD(t.urgency, 'urgente', 'alta', 'média', 'baixa'), 
+            t.created_at ASC
+    ";
+    $stmt = $conn->prepare($ticketQuery);
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+}
 $ticketResult = $stmt->get_result();
+// Prepara e executa a query
+
 ?>
 
 <!DOCTYPE html>
@@ -134,7 +157,10 @@ $ticketResult = $stmt->get_result();
                             <td><?php echo htmlspecialchars($ticket['id']); ?></td>
                             <td><?php echo htmlspecialchars($ticket['subject']); ?></td>
                             <td class="assignee-cell"><?php echo htmlspecialchars($ticket['assignee'] ? $ticket['assignee'] : 'nenhum'); ?></td>
-                            <td data-status="<?php echo getStatusText($ticket['status']); ?>"><?php echo getStatusText($ticket['status']); ?></td>
+                            <td><?php
+                                $statusAtual = getStatusText($ticket['status']);
+                                echo htmlspecialchars($statusAtual);
+                                ?></td>
                             <td><?php echo date('d/m/Y H:i:s', strtotime($ticket['created_at'])); ?></td>
                             <td><?php echo htmlspecialchars($ticket['category']); ?></td>
                             <td><?php echo htmlspecialchars($ticket['sector']); ?></td>
@@ -194,3 +220,13 @@ $ticketResult = $stmt->get_result();
 </body>
 
 </html>
+
+<script>
+    // Função para atualizar a página
+    function autoRefresh() {
+        window.location.reload();
+    }
+
+    // Define o intervalo de atualização para 3 segundos (3000 milissegundos)
+    setInterval(autoRefresh, 5000);
+</script>
