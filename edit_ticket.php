@@ -10,9 +10,17 @@ if (!isset($_SESSION['email'])) {
     header("Location: login.php");
     exit();
 }
-  
-  // No início do arquivo, após as verificações de sessão
-  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+$email = $_SESSION['email'];
+$stmt = $conn->prepare("SELECT tipo_usuario, name FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$userData = $stmt->get_result()->fetch_assoc();
+$userName = $userData['name'];
+$userType = $userData['tipo_usuario'];
+
+// No início do arquivo, após as verificações de sessão
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ticketId = $_POST['id'];
     $subject = $_POST['subject'];
     $category = $_POST['category'];
@@ -34,35 +42,36 @@ if (!isset($_SESSION['email'])) {
         WHERE id = ?";
 
     $stmt = $conn->prepare($updateQuery);
-    $stmt->bind_param("sssssssi", 
-        $subject, 
-        $category, 
-        $sector, 
-        $urgency, 
-        $status, 
+    $stmt->bind_param(
+        "sssssssi",
+        $subject,
+        $category,
+        $sector,
+        $urgency,
+        $status,
         $assignee,
-        $description, 
+        $description,
         $ticketId
     );
-    
+
     if ($stmt->execute()) {
         header("Location: menu.php");
         exit();
     } else {
         echo "Erro ao atualizar: " . $conn->error;
     }
-  }
+}
 // Fetch ticket data for display
 if (isset($_GET['id'])) {
     $ticketId = $_GET['id'];
-    
+
     $query = "SELECT * FROM tickets WHERE id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $ticketId);
     $stmt->execute();
     $result = $stmt->get_result();
     $ticket = $result->fetch_assoc();
-    
+
     if (!$ticket) {
         header("Location: menu.php");
         exit();
@@ -78,6 +87,7 @@ if (isset($_GET['id'])) {
     <input type="hidden" name="id" value="<?php echo $ticket['id']; ?>">
     <!-- Rest of your form fields -->
 </form>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -89,9 +99,9 @@ if (isset($_GET['id'])) {
 
 <body>
     <div class="header">
-    <a href="menu.php" class="open-ticket-btn">
-                <i class="fas fa-arrow-left"></i> Voltar
-            </a>
+        <a href="menu.php" class="open-ticket-btn">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
         <h1>Editar Chamado</h1>
         <div class="user-info">
             <button class="user-button">
@@ -102,44 +112,14 @@ if (isset($_GET['id'])) {
 
     <div class="sidebar">
         <ul class="menu-list">
-            <li>
-                <a href="menu.php">
-                    <i class="fas fa-home"></i>
-                    <span class="menu-text">Menu Principal</span>
-                </a>
-            </li>
-            <li>
-                <a href="configuracao_usuario.php">
-                    <i class="fas fa-user-plus"></i>
-                    <span class="menu-text">Adicionar Usuário</span>
-                </a>
-
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fas fa-cogs"></i>
-                    <span class="menu-text">Configurações</span>
-                </a>
-            </li>
-            <li>
-                <a href="meus_chamados.php">
-                    <i class="fas fa-ticket-alt"></i>
-                    <span class="menu-text">Meus Chamados</span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fas fa-history"></i>
-                    <span class="menu-text">Histórico de Chamados</span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="menu-text">Sair</span>
-                </a>
-            </li>
-
+            <?php if ($userType == 'atendente'): ?>
+                <li><a href="configuracao_usuario.php"><i class="fas fa-users-cog"></i><span class="menu-text">Adicionar Usuário</span></a></li>
+               <!-- <li><a href="#"><i class="fas fa-cogs"></i><span class="menu-text">Configurações</span></a></li> -->
+                <li><a href="meus_chamados.php"><i class="fas fa-ticket-alt"></i><span class="menu-text">Meus Chamados</span></a></li>
+            <?php endif; ?>
+            <li><a href="todos_chamados.php"><i class="fas fa-list-alt"></i><span class="menu-text">Chamados Ativos</span></a></li>
+            <li><a href="historico_chamados.php"><i class="fas fa-history"></i><span class="menu-text">Histórico de Chamados</span></a></li>
+            <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i><span class="menu-text">Sair</span></a></li>
         </ul>
     </div>
 
@@ -178,15 +158,15 @@ if (isset($_GET['id'])) {
             <label for="attendant">Responsável</label>
             <select name="assignee" id="assignee" required>
                 <option value="">Selecione um responsável</option>
-                <?php 
+                <?php
                 $query_attendants = "SELECT email, name FROM users WHERE tipo_usuario = 'atendente'";
                 if ($stmt_attendants = $conn->prepare($query_attendants)) {
                     $stmt_attendants->execute();
                     $result_attendants = $stmt_attendants->get_result();
                     while ($attendant = $result_attendants->fetch_assoc()) {
                         $selected = ($ticket['assignee'] == $attendant['email']) ? 'selected' : '';
-                        echo "<option value='" . $attendant['email'] . "' " . $selected . ">" 
-                             . htmlspecialchars($attendant['name']) . "</option>";
+                        echo "<option value='" . $attendant['email'] . "' " . $selected . ">"
+                            . htmlspecialchars($attendant['name']) . "</option>";
                     }
                     $stmt_attendants->close();
                 }

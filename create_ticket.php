@@ -2,26 +2,39 @@
 <html lang="pt-br">
 
 <?php
-include 'db.php';
 session_start();
+include ('db.php');
+include('conexao.php');
+
 
 // Verificação de login
 if (!isset($_SESSION['email'])) {
     header("Location: login.php");
     exit();
 }
+function getStatusText($statusNumber)
+{
+    $statusMap = [
+        '1' => 'Aberto',
+        '2' => 'Atendimento',
+        '3' => 'Fechado',
+        '4' => 'Encerrado',
+        '5' => 'Espera'
+    ];
+    return $statusMap[$statusNumber] ?? 'desconhecido';
+}
 
-include('conexao.php');
 
 $errorMessage = '';
 
 // Buscar nome do usuário logado
 $email = $_SESSION['email'];
-$query = "SELECT name FROM users WHERE email = ?";
-$stmt = $pdo->prepare($query);
-$stmt->execute([$email]);
-$user = $stmt->fetch();
-$userName = $user['name'];
+$stmt = $conn->prepare("SELECT tipo_usuario, name FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$userData = $stmt->get_result()->fetch_assoc();
+$userName = $userData['name'];
+$userType = $userData['tipo_usuario'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $subject = $_POST['subject'] ?? '';
@@ -91,52 +104,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="sidebar">
         <ul class="menu-list">
-        <li>
-                <a href="menu.php">
-                    <i class="fas fa-home"></i>
-                    <span class="menu-text">Menu Principal</span>
-                </a>
-            </li>
-            <li>
-                <a href="configuracao_usuario.php">
-                    <i class="fas fa-user-plus"></i>
-                    <span class="menu-text">Adicionar Usuário</span>
-                </a>
-
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fas fa-cogs"></i>
-                    <span class="menu-text">Configurações</span>
-                </a>
-            </li>
-            <li>
-                <a href="meus_chamados.php">
-                    <i class="fas fa-ticket-alt"></i>
-                    <span class="menu-text">Meus Chamados</span>
-                </a>
-            </li>
-            <li>
-                <a href="todos_chamados.php">
-                    <i class="fas fa-list-alt"></i>
-                    <span class="menu-text">Chamados Ativos</span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fas fa-history"></i>
-                    <span class="menu-text">Histórico de Chamados</span>
-                </a>
-            </li>
-            <li>
-                <a href="logout.php">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="menu-text">Sair</span>
-                </a>
-            </li>
+            <?php if ($userType == 'atendente'): ?>
+                <li><a href="configuracao_usuario.php"><i class="fas fa-users-cog"></i><span class="menu-text">Adicionar Usuário</span></a></li>
+               <!-- <li><a href="#"><i class="fas fa-cogs"></i><span class="menu-text">Configurações</span></a></li> -->
+                <li><a href="meus_chamados.php"><i class="fas fa-ticket-alt"></i><span class="menu-text">Meus Chamados</span></a></li>
+            <?php endif; ?>
+            <li><a href="todos_chamados.php"><i class="fas fa-list-alt"></i><span class="menu-text">Chamados Ativos</span></a></li>
+            <li><a href="historico_chamados.php"><i class="fas fa-history"></i><span class="menu-text">Histórico de Chamados</span></a></li>
+            <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i><span class="menu-text">Sair</span></a></li>
         </ul>
     </div>
-
+    
     <div class="ticket-form-container">
         <form action="create_ticket.php" method="post">
             <label for="subject">Assunto</label>

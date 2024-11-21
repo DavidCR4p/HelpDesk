@@ -1,6 +1,7 @@
 <?php
-include 'db.php';
 session_start();
+include('conexao.php');  // Mova esta linha para antes do uso de $conn
+include('db.php');
 
 // Verificação de login
 if (!isset($_SESSION['email'])) {
@@ -8,7 +9,20 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
-include('conexao.php');
+// Agora o $conn estará disponível para uso
+$email = $_SESSION['email'];
+$stmt = $conn->prepare("SELECT primeiro_login, requer_troca_senha FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+
+if ($user['primeiro_login'] == 1 || $user['requer_troca_senha'] == 1) {
+    header("Location: alterar_senha.php");
+    exit();
+}
+
+
 // Função para converter número em texto do status
 function getStatusText($statusNumber)
 {
@@ -36,6 +50,8 @@ $userType = $userData['tipo_usuario'];
 $where_conditions = ["created_by = ?"];
 $params = [$_SESSION['email']];
 $types = "s";
+
+
 
 // Modifique a parte da query após a verificação do tipo de usuário
 if ($userType == 'atendente') {
@@ -126,9 +142,11 @@ $ticketResult = $stmt->get_result();
 
     <div class="sidebar">
         <ul class="menu-list">
-            <li><a href="configuracao_usuario.php"><i class="fas fa-user-plus"></i><span class="menu-text">Adicionar Usuário</span></a></li>
-            <li><a href="#"><i class="fas fa-cogs"></i><span class="menu-text">Configurações</span></a></li>
-            <li><a href="meus_chamados.php"><i class="fas fa-ticket-alt"></i><span class="menu-text">Meus Chamados</span></a></li>
+            <?php if ($userType == 'atendente'): ?>
+                <li><a href="configuracao_usuario.php"><i class="fas fa-users-cog"></i><span class="menu-text">Adicionar Usuário</span></a></li>
+               <!-- <li><a href="#"><i class="fas fa-cogs"></i><span class="menu-text">Configurações</span></a></li> -->
+                <li><a href="meus_chamados.php"><i class="fas fa-ticket-alt"></i><span class="menu-text">Meus Chamados</span></a></li>
+            <?php endif; ?>
             <li><a href="todos_chamados.php"><i class="fas fa-list-alt"></i><span class="menu-text">Chamados Ativos</span></a></li>
             <li><a href="historico_chamados.php"><i class="fas fa-history"></i><span class="menu-text">Histórico de Chamados</span></a></li>
             <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i><span class="menu-text">Sair</span></a></li>

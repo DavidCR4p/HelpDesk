@@ -1,25 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <?php
-include 'db.php';
+
 session_start();
+include('conexao.php');
+include ('db.php');
 
 if (!isset($_SESSION['email'])) {
     header("Location: login.php");
     exit();
 }
 
-include('conexao.php');
+function getStatusText($statusNumber)
+{
+    $statusMap = [
+        '1' => 'Aberto',
+        '2' => 'Atendimento',
+        '3' => 'Fechado',
+        '4' => 'Encerrado',
+        '5' => 'Espera'
+    ];
+    return $statusMap[$statusNumber] ?? 'desconhecido';
+}
 
 // Buscar nome do usuário logado
 $email = $_SESSION['email'];
-$query = "SELECT name FROM users WHERE email = ?";
-$stmt = $conn->prepare($query);
+$stmt = $conn->prepare("SELECT tipo_usuario, name FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-$userName = $user['name'];
+$userData = $stmt->get_result()->fetch_assoc();
+$userName = $userData['name'];
+$userType = $userData['tipo_usuario'];
 
 // Buscar detalhes do ticket
 $ticketId = $_GET['id'];
@@ -54,53 +65,17 @@ $ticket = $ticketResult->fetch_assoc();
     </div>
     <div class="sidebar">
         <ul class="menu-list">
-            <li>
-                <a href="menu.php">
-                    <i class="fas fa-home"></i>
-                    <span class="menu-text">Menu Principal</span>
-                </a>
-            </li>
-            <li>
-                <a href="configuracao_usuario.php">
-                    <i class="fas fa-user-plus"></i>
-                    <span class="menu-text">Adicionar Usuário</span>
-                </a>
-
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fas fa-cogs"></i>
-                    <span class="menu-text">Configurações</span>
-                </a>
-            </li>
-            <li>
-                <a href="meus_chamados.php">
-                    <i class="fas fa-ticket-alt"></i>
-                    <span class="menu-text">Meus Chamados</span>
-                </a>
-            </li>
-            <li>
-                <a href="todos_chamados.php">
-                    <i class="fas fa-list-alt"></i>
-                    <span class="menu-text">Chamados Ativos</span>
-                </a>
-            </li>
-            <li>
-                <a href="historico_chamados.php">
-                    <i class="fas fa-history"></i>
-                    <span class="menu-text">Histórico de Chamados</span>
-                </a>
-            </li>
-            <li>
-                <a href="logout.php">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="menu-text">Sair</span>
-                </a>
-            </li>
-
+            <?php if ($userType == 'atendente'): ?>
+                <li><a href="configuracao_usuario.php"><i class="fas fa-users-cog"></i><span class="menu-text">Adicionar Usuário</span></a></li>
+               <!-- <li><a href="#"><i class="fas fa-cogs"></i><span class="menu-text">Configurações</span></a></li> -->
+                <li><a href="meus_chamados.php"><i class="fas fa-ticket-alt"></i><span class="menu-text">Meus Chamados</span></a></li>
+            <?php endif; ?>
+            <li><a href="todos_chamados.php"><i class="fas fa-list-alt"></i><span class="menu-text">Chamados Ativos</span></a></li>
+            <li><a href="historico_chamados.php"><i class="fas fa-history"></i><span class="menu-text">Histórico de Chamados</span></a></li>
+            <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i><span class="menu-text">Sair</span></a></li>
         </ul>
     </div>
-
+    
     <div class="content">
         <div class="ticket-details">
             <div class="form-group">
@@ -134,7 +109,7 @@ $ticket = $ticketResult->fetch_assoc();
 
                 <div class="form-group">
                     <label>Status:</label>
-                    <input type="text" value="<?php echo ($ticket['status']); ?>" readonly>
+                    <input type="text" value="<?php echo getStatusText($ticket['status']); ?>" readonly>
                 </div>
 
                 <div class="form-group">
@@ -162,7 +137,7 @@ $ticket = $ticketResult->fetch_assoc();
             max-width: 800px;
             margin: 20px auto;
             padding: 20px;
-            background: #fff;
+            background: #007BFF;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }

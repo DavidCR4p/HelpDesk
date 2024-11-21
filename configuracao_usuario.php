@@ -18,6 +18,7 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 $userName = $user['name'];
+$userType = $userData['tipo_usuario'];
 
 // Verificar se é o primeiro login
 if ($user['primeiro_login']) {
@@ -118,60 +119,14 @@ $userResult = $conn->query($userQuery);
     <!-- Sidebar -->
     <div class="sidebar">
         <ul class="menu-list">
-            <li>
-                <a href="menu.php">
-                    <i class="fas fa-home"></i>
-                    <span class="menu-text">Menu Principal</span>
-                </a>
-            </li>
-            <li>
-                <a href="configuracao_usuario.php">
-                    <i class="fas fa-user-plus"></i>
-                    <span class="menu-text">Adicionar Usuário</span>
-                </a>
-
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fas fa-cogs"></i>
-                    <span class="menu-text">Configurações</span>
-                </a>
-            </li>
-            <li>
-                <a href="meus_chamados.php">
-                    <i class="fas fa-ticket-alt"></i>
-                    <span class="menu-text">Meus Chamados</span>
-                </a>
-            </li>
-            <li>
-                <a href="todos_chamados.php">
-                    <i class="fas fa-list-alt"></i>
-                    <span class="menu-text">Chamados Ativos</span>
-                </a>
-            </li>
-            <li>
-                <a href="historico_chamados.php">
-                    <i class="fas fa-history"></i>
-                    <span class="menu-text">Histórico de Chamados</span>
-                </a>
-            </li>
-            <li>
-                <a href="logout.php">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="menu-text">Sair</span>
-                </a>
-            </li>
-
-
+            <!-- <li><a href="#"><i class="fas fa-cogs"></i><span class="menu-text">Configurações</span></a></li> -->
+            <li><a href="meus_chamados.php"><i class="fas fa-ticket-alt"></i><span class="menu-text">Meus Chamados</span></a></li>
+            <li><a href="todos_chamados.php"><i class="fas fa-list-alt"></i><span class="menu-text">Chamados Ativos</span></a></li>
+            <li><a href="historico_chamados.php"><i class="fas fa-history"></i><span class="menu-text">Histórico de Chamados</span></a></li>
+            <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i><span class="menu-text">Sair</span></a></li>
         </ul>
     </div>
-
-    <!-- Adicione o seguinte código antes da tabela de usuários -->
-    <form action="" method="get">
-        <input type="text" name="filtro" placeholder="Filtrar por nome ou e-mail">
-        <button type="submit">Filtrar</button>
-    </form>
-
+    
     <!-- Conteúdo principal -->
     <div class="content">
         <?php if ($userResult->num_rows > 0): ?>

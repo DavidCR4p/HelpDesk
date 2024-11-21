@@ -2,16 +2,15 @@
 <html lang="pt-br">
 
 <?php
-include 'db.php';
 session_start();
+include('conexao.php');
+include('db.php');
 
 // Verificação de login
 if (!isset($_SESSION['email'])) {
     header("Location: login.php");
     exit();
 }
-
-include('conexao.php');
 
 // Função para converter número em texto do status
 function getStatusText($statusNumber)
@@ -26,25 +25,58 @@ function getStatusText($statusNumber)
     return $statusMap[$statusNumber] ?? 'desconhecido';
 }
 
-// Buscar nome do usuário logado
+// Busca informações do usuário
 $email = $_SESSION['email'];
-$query = "SELECT name FROM users WHERE email = ?";
-$stmt = $conn->prepare($query);
+$stmt = $conn->prepare("SELECT tipo_usuario, name FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-$userName = $user['name'];
+$userData = $stmt->get_result()->fetch_assoc();
+$userName = $userData['name'];
+$userType = $userData['tipo_usuario'];
 
 // Consulta todos os chamados fechados e encerrados
-$ticketQuery = "
-    SELECT id, subject, assignee, status, created_at, category, sector, urgency
-    FROM tickets
-    WHERE status IN (3, 4)
-    ORDER BY created_at DESC
-";
-
-$ticketResult = $conn->query($ticketQuery);
+if ($userType == 'atendente') {
+    $ticketQuery = "
+        SELECT 
+            t.id, 
+            t.subject, 
+            t.assignee, 
+            t.status, 
+            t.created_at, 
+            t.category, 
+            t.sector, 
+            t.urgency
+        FROM tickets t
+        WHERE (t.assignee = '$userName')
+        AND t.status IN (3,4)
+        ORDER BY 
+            t.created_at ASC
+    ";
+    $stmt = $conn->prepare($ticketQuery);
+    $stmt->execute();
+} else {
+    $ticketQuery = "
+        SELECT 
+            t.id, 
+            t.subject, 
+            t.assignee, 
+            t.status, 
+            t.created_at, 
+            t.category, 
+            t.sector, 
+            t.urgency
+        FROM tickets t
+        WHERE t.created_by = ?
+        AND t.status IN (3,4)
+        ORDER BY 
+            t.created_at ASC
+    ";
+    $stmt = $conn->prepare($ticketQuery);
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+}
+$ticketResult = $stmt->get_result();
+// Prepara e executa a query
 ?>
 
 <head>
@@ -71,48 +103,14 @@ $ticketResult = $conn->query($ticketQuery);
 
     <div class="sidebar">
         <ul class="menu-list">
-            <li>
-                <a href="menu.php">
-                    <i class="fas fa-home"></i>
-                    <span class="menu-text">Menu Principal</span>
-                </a>
-            </li>
-            <li>
-                <a href="configuracao_usuario.php">
-                    <i class="fas fa-user-plus"></i>
-                    <span class="menu-text">Adicionar Usuário</span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fas fa-cogs"></i>
-                    <span class="menu-text">Configurações</span>
-                </a>
-            </li>
-            <li>
-                <a href="meus_chamados.php">
-                    <i class="fas fa-ticket-alt"></i>
-                    <span class="menu-text">Meus Chamados</span>
-                </a>
-            </li>
-            <li>
-                <a href="todos_chamados.php">
-                    <i class="fas fa-list-alt"></i>
-                    <span class="menu-text">Chamados Ativos</span>
-                </a>
-            </li>
-            <li>
-                <a href="historico_chamados.php">
-                    <i class="fas fa-history"></i>
-                    <span class="menu-text">Histórico de Chamados</span>
-                </a>
-            </li>
-            <li>
-                <a href="logout.php">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="menu-text">Sair</span>
-                </a>
-            </li>
+            <?php if ($userType == 'atendente'): ?>
+                <li><a href="configuracao_usuario.php"><i class="fas fa-users-cog"></i><span class="menu-text">Adicionar Usuário</span></a></li>
+               <!-- <li><a href="#"><i class="fas fa-cogs"></i><span class="menu-text">Configurações</span></a></li> -->
+                <li><a href="meus_chamados.php"><i class="fas fa-ticket-alt"></i><span class="menu-text">Meus Chamados</span></a></li>
+            <?php endif; ?>
+            <li><a href="todos_chamados.php"><i class="fas fa-list-alt"></i><span class="menu-text">Chamados Ativos</span></a></li>
+            <li><a href="historico_chamados.php"><i class="fas fa-history"></i><span class="menu-text">Histórico de Chamados</span></a></li>
+            <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i><span class="menu-text">Sair</span></a></li>
         </ul>
     </div>
 
@@ -152,7 +150,7 @@ $ticketResult = $conn->query($ticketQuery);
                     <?php endwhile; ?>
                 </tbody>
             </table>
-        <?php else: ?>            <p><strong>Vazio:</strong> Não há chamados no histórico.</p>
+        <?php else: ?> <p><strong>Vazio:</strong> Não há chamados no histórico.</p>
         <?php endif; ?>
     </div>
 
@@ -168,4 +166,5 @@ $ticketResult = $conn->query($ticketQuery);
     </script>
 
 </body>
+
 </html>
